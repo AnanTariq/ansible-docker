@@ -2,49 +2,36 @@
 - name: Deploy Apache Docker Container
   hosts: localhost
   become: yes
-
   tasks:
-    - name: Ensure Docker is installed
+    - name: Ensure docker is installed
       apt:
         name: docker.io
         state: present
-      when: ansible_os_family == "Debian"
 
-    - name: Ensure Docker is installed
-      yum:
-        name: docker
-        state: present
-      when: ansible_os_family == "RedHat"
-
-    - name: Ensure Docker service is running
+    - name: Start docker service
       service:
         name: docker
         state: started
         enabled: yes
 
-    - name: Pull the latest httpd image
+    - name: Pull latest Apache image
       docker_image:
         name: httpd
         source: pull
 
     - name: Run Apache container
       docker_container:
-        name: apache
+        name: apache_container
         image: httpd
         state: started
         ports:
           - "80:80"
         networks:
           - name: my_network
+            ipv4_address: 172.168.10.2
 
-    - name: Create Docker network
+    - name: Create a Docker network
       docker_network:
         name: my_network
         ipam_config:
           - subnet: 172.168.10.0/30
-
-  handlers:
-    - name: Restart Docker
-      service:
-        name: docker
-        state: restarted
